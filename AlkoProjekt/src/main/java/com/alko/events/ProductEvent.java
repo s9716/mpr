@@ -14,6 +14,15 @@ public class ProductEvent extends EventObject {
 		return _product;
 		}	
 	
+	
+	public ProductEvent(Object source, Product product) {
+		super(source);
+		_product=product;
+		
 
+		
+		
+		
+	}
 	
 }

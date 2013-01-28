@@ -2,15 +2,15 @@ package com.alko.project;
 
 import java.sql.SQLException;
 
-import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.apache.log4j.Logger;
 
 import com.alko.events.Desk;
+import com.alko.events.IProductProcesses;
 import com.alko.events.Desk.ChangeBoxProduct;
 import com.alko.events.Desk.CleanProduct;
 import com.alko.events.Desk.PromoteProduct;
 import com.alko.events.Desk.RollbackProduct;
-import com.alko.events.IProductProcesses;
 import com.alko.services.ClientDBManager;
 import com.alko.services.ClientProductDBManager;
 import com.alko.services.Condition;
@@ -22,8 +22,123 @@ public class Main {
 
 	public static void main(String[] args) throws PriceException, SQLException {
 
-		
 		PropertyConfigurator.configure("Log4J.properties");
 
-		
+		Client c = new Client("Daniel Jackowski");
 
+		c.addProduct(new Product(ProductMarks.Glenfiddich, (double) 199));
+		c.addProduct(new Product(ProductMarks.Johniee_Walker_Blue, (double) 399));
+		c.addProduct(new Product(ProductMarks.Malibu, (double) 55));
+		c.printProducts();
+		System.out.println("..........................................");
+		try {
+			c.addProduct(new Product(ProductMarks.Glenfiddich, (double) -5));
+
+		} catch (PriceException e) {
+			logger.error(e.getMessage());
+		}
+		c.printProducts();
+		System.out.println("..........................................");
+		c.addProduct(new Product(ProductMarks.Johniee_Walker_Red, (double) 0));
+		c.checkPrice(c.findProduct(ProductMarks.Johniee_Walker_Red));
+		c.deleteProduct(c.findProduct(ProductMarks.Glenfiddich));
+		c.printProducts();
+		System.out.println("..........................................");
+
+		Product p = new Product(ProductMarks.Gorzka, (double) 15);
+		try {
+			p.setPrice(-2);
+		} catch (PriceException e) {
+
+			logger.error(e);
+			logger.fatal(e);
+			logger.info(e);
+			logger.warn(e);
+		}
+		System.out.println(p.getName() + " cena: " + p.getPrice());
+		System.out.println("..........................................");
+
+		Client d = new Client("Tadeusz Jackowski");
+		d.addProduct(new Product(ProductMarks.Johniee_Walker_Red,
+				(float) 5556643));
+		d.addProduct(new Product(ProductMarks.Johniee_Walker_Blue,
+				(float) 5556643));
+		d.FindAllProductsByCode(5556643);
+		d.DeleteManyProductsByCode(5556643);
+		System.out.println(".....................");
+		d.FindAllProductsByCode(5556643);
+		System.out.println("..........................................");
+
+		System.out.println("..........................................");
+		Desk desk = new Desk();
+		IProductProcesses clean = new CleanProduct();
+		IProductProcesses change = new ChangeBoxProduct();
+		IProductProcesses promote = new PromoteProduct();
+		IProductProcesses rollback = new RollbackProduct();
+		Product z = new Product(ProductMarks.Sheridans, (double) 4);
+		Product x = new Product(ProductMarks.Johniee_Walker_Red, (double) 45,
+				(float) 5556643);
+		try {
+			z.setCode(11112222);
+		} catch (CodeException e) {
+
+			e.printStackTrace();
+		}
+		z.setBox();
+		desk.addProcess(clean);
+		desk.addProcess(change);
+		desk.addProcess(promote);
+		desk.addProcess(rollback);
+		desk.setProduct(z);
+		desk.executeProcesses();
+		ClientDBManager cdb = new ClientDBManager();
+		cdb.addClient(c);
+		cdb.addClient(d);
+		for (Client client : cdb.getAllClients()) {
+			System.out.println(client.getName());
+		}
+		// cdb.clear();
+		System.out.println("..........................................");
+
+		ProductDBManager pdb = new ProductDBManager();
+		pdb.addProduct(z);
+		pdb.addProduct(x);
+		// pdb.droptableproduct();
+
+		ClientProductDBManager dbClientProduct = new ClientProductDBManager();
+
+		dbClientProduct.addProductToClient(cdb.FindClientByName(c.getName()),
+				pdb.findProductByName(ProductMarks.Sheridans));
+		dbClientProduct.addProductToClient(cdb.FindClientByName(d.getName()),
+				pdb.findProductByCode(5556643));
+
+		System.out.println("..........................................");
+		System.out.println("Daniel Jackowski");
+		for (Product product : dbClientProduct.getClientProduct(cdb
+				.FindClientByName("Daniel Jackowski"))) {
+			System.out.println("Name: " + product.getName2().toString()
+					+ "\tCode: " + product.getCode() + "\tPrice: "
+					+ product.getPrice());
+
+		}
+		System.out.println("..........................................");
+		System.out.println("Tadeusz Jackowski");
+		for (Product product : dbClientProduct.getClientProduct(cdb
+				.FindClientByName("Tadeusz Jackowski"))) {
+			System.out.println("Name: " + product.getName2().toString()
+					+ "\tCode: " + product.getCode() + "\tPrice: "
+					+ product.getPrice());
+		}
+
+		System.out.println("Wszystkie produkty powyzej 10 zł");
+		pdb.printProductWithCondition(pdb.getAllProducts(), new Condition() {
+			@Override
+			public boolean getCondition(Product p) {
+				if (p.getPrice() > 10)
+					return true;
+				return false;
+			}
+		});
+	}
+
+}

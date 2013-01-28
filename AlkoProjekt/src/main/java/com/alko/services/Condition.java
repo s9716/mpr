@@ -1,6 +1,6 @@
 package com.alko.services;
 
-import com.alko.project.Product;
+import com.alko.project.*;
 
 	public abstract class Condition {
 
