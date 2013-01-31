@@ -1,0 +1,1 @@
+W moim programie klient mo¿e kupowaæ alkohole, mo¿na w nim dodawaæ klientów oraz alkohole edytowaæ oraz usuwaæ.
